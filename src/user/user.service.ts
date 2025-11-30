@@ -23,7 +23,7 @@ export class UserService {
 
   getById(id: string) {
     const user = this.UserDB.getById(id);
-    delete user.id;
+    delete user.password;
     return user;
   }
 
@@ -36,7 +36,7 @@ export class UserService {
       ...body,
     };
     const newUser = this.UserDB.addUser(mappedBody);
-    delete newUser.id;
+    delete newUser.password;
     return newUser;
   }
 
