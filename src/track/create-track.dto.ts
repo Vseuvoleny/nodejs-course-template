@@ -1,4 +1,10 @@
-import { IsNotEmpty, IsNumber, IsString } from 'class-validator';
+import {
+  IsNotEmpty,
+  IsNumber,
+  IsOptional,
+  IsString,
+  IsUUID,
+} from 'class-validator';
 
 export interface Track {
   id: string; // uuid v4
@@ -13,12 +19,30 @@ export class CreateTrackDto {
   @IsNotEmpty({ message: 'Наименование обязательно' })
   name: string;
 
-  @IsString()
+  @IsUUID()
   artistId: string;
 
-  @IsString()
+  @IsUUID()
   albumId: string;
 
   @IsNumber()
+  duration: number;
+}
+
+export class UpdateTrackDto {
+  @IsString()
+  @IsOptional()
+  name: string;
+
+  @IsUUID()
+  @IsOptional()
+  artistId: string;
+
+  @IsUUID()
+  @IsOptional()
+  albumId: string;
+
+  @IsNumber()
+  @IsOptional()
   duration: number;
 }

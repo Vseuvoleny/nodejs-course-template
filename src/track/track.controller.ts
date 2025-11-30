@@ -11,7 +11,7 @@ import {
   Put,
 } from '@nestjs/common';
 import { TrackService } from './track.service';
-import { CreateTrackDto } from './create-track.dto';
+import { CreateTrackDto, UpdateTrackDto } from './create-track.dto';
 
 @Controller('track')
 export class TrackController {
@@ -38,7 +38,7 @@ export class TrackController {
   }
 
   @Put(':id')
-  updateTrack(@Param('id') id: string, @Body() body: CreateTrackDto) {
+  updateTrack(@Param('id') id: string, @Body() body: UpdateTrackDto) {
     try {
       return this.trackService.updateTrack(id, body);
     } catch (error) {
