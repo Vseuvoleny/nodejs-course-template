@@ -30,7 +30,6 @@ export class FavoriteService {
     if (!result) {
       return { track: [], artist: [], album: [] };
     }
-    console.log({ result });
 
     return result;
   }
@@ -77,17 +76,16 @@ export class FavoriteService {
     }
     const result = await this.getAll();
     const currentAlbum = result.track.find((elem) => elem.id === id);
-    if (!currentAlbum) {
+    if (currentAlbum) {
       throw new NotModifiedException();
     }
 
-    result.track.push(currentAlbum);
+    result.track.push(currentEntity);
     await this.favoriteRepository.save(result);
   }
 
   private async addArtist(id: string) {
     const currentEntity = await this.artistRepository.findOneBy({ id });
-    console.log({ currentEntity });
 
     if (!currentEntity) {
       throw new UserNotFoundException('Не найден артист');
@@ -98,7 +96,8 @@ export class FavoriteService {
       throw new NotModifiedException();
     }
 
-    result.artist.push(currentArtist);
+    result.artist.push(currentEntity);
+
     const res = await this.favoriteRepository.save(result);
     return res;
   }
@@ -110,13 +109,14 @@ export class FavoriteService {
     }
     const result = await this.getAll();
     const currentAlbum = result.album.find((elem) => elem.id === id);
-    if (!currentAlbum) {
+    if (currentAlbum) {
       throw new NotModifiedException();
     }
 
-    result.album.push(currentAlbum);
+    result.album.push(currentEntity);
     await this.favoriteRepository.save(result);
   }
+
   private async deleteTrack(id: string) {
     const currentEntity = await this.trackRepository.findOneBy({ id });
     if (!currentEntity) {
@@ -128,8 +128,8 @@ export class FavoriteService {
       throw new NotModifiedException();
     }
 
-    result.track = result.track.filter((el) => el.id !== currentAlbum.id);
-    await this.favoriteRepository.save(result.track);
+    const filteredTrack = result.track.filter((el) => el.id !== id);
+    await this.favoriteRepository.save({ ...result, filteredTrack });
   }
   private async deleteArtist(id: string) {
     const currentEntity = await this.artistRepository.findOneBy({ id });
@@ -142,8 +142,9 @@ export class FavoriteService {
       throw new NotModifiedException();
     }
 
-    result.artist = result.artist.filter((el) => el.id !== current.id);
-    await this.favoriteRepository.save(result.artist);
+    const filteredArtist = result.artist.filter((el) => el.id !== id);
+
+    await this.favoriteRepository.save({ ...result, artist: filteredArtist });
   }
   private async deleteAlbum(id: string) {
     const currentEntity = await this.albumRepository.findOneBy({ id });
@@ -151,12 +152,12 @@ export class FavoriteService {
       throw new UserNotFoundException('Не найден трек');
     }
     const result = await this.getAll();
-    const current = result.album.find((elem) => elem.id === id);
+    const current = result.album.find((elem) => elem.id !== id);
     if (!current) {
       throw new NotModifiedException();
     }
 
-    result.album.push(current);
-    await this.favoriteRepository.save(result);
+    const filteredAlbum = result.album.filter((el) => el.id !== id);
+    await this.favoriteRepository.save({ ...result, album: filteredAlbum });
   }
 }
