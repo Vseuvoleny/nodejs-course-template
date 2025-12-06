@@ -11,7 +11,8 @@ import {
   Put,
 } from '@nestjs/common';
 import { ArtistService } from './artist.service';
-import { CreateArtistDto, UpdateArtistDto } from './create-artist.dto';
+import { UpdateArtistDto } from './create-artist.dto';
+import { Artist } from './artist.entity';
 
 @Controller('artist')
 export class ArtistController {
@@ -28,7 +29,7 @@ export class ArtistController {
 
   @Post()
   @HttpCode(201)
-  createNewArtist(@Body() createUserDto: CreateArtistDto) {
+  createNewArtist(@Body() createUserDto: Omit<Artist, 'id'>) {
     return this.artistService.createNewArtist(createUserDto);
   }
 
