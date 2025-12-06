@@ -1,5 +1,10 @@
 import { Track } from 'src/track/create-track.dto';
 
+/**
+ * @deprecated
+ * Класс более не используется
+ * Используйте базу
+ */
 export class TrackDb {
   private tracks: Track[] = [];
 

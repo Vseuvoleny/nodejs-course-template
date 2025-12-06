@@ -1,5 +1,10 @@
 import { Artist } from 'src/artist/create-artist.dto';
 
+/**
+ * @deprecated
+ * Класс более не используется
+ * Используйте базу
+ */
 export class ArtistDb {
   private artists: Artist[] = [];
 
