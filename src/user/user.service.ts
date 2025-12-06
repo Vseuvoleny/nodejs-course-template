@@ -1,7 +1,6 @@
 import { Injectable } from '@nestjs/common';
-import { Db } from '../db/db';
-import { randomUUID } from 'crypto';
-import { CreateUserDto, User } from './create-user.dto';
+
+import { CreateUserDto } from './create-user.dto';
 import { UpdatePasswordDto } from './update-user.dto';
 import { isUUID } from 'class-validator';
 import {
@@ -9,53 +8,73 @@ import {
   InvalidUserIdException,
   UserNotFoundException,
 } from 'src/exceptions/user.exceptions';
+import { InjectRepository } from '@nestjs/typeorm';
+import { User } from './user.entity';
+import { Repository } from 'typeorm';
 
 @Injectable()
 export class UserService {
-  private UserDB = new Db([]);
+  constructor(
+    @InjectRepository(User) private userRepository: Repository<User>,
+  ) {}
 
-  getAll() {
-    return this.UserDB.getAllUsers.map((e) => {
+  async getAll() {
+    const users = await this.userRepository.find();
+    return users.map((e) => {
       delete e.password;
       return e;
     });
   }
 
-  getById(id: string) {
-    const user = this.UserDB.getById(id);
+  async getById(id: string) {
+    if (!isUUID(id)) {
+      throw new InvalidUserIdException();
+    }
+
+    const user = await this.userRepository.findOneBy({ id });
+    if (!user) {
+      throw new UserNotFoundException();
+    }
+
     delete user.password;
+
     return user;
   }
 
-  createNewUser(body: CreateUserDto) {
-    const mappedBody: User = {
-      id: randomUUID(),
+  async createNewUser(body: CreateUserDto) {
+    const mappedBody: Omit<User, 'id'> = {
       createdAt: new Date().getTime(),
       updatedAt: new Date().getTime(),
       version: 1,
       ...body,
     };
-    const newUser = this.UserDB.addUser(mappedBody);
+
+    const newUser = await this.userRepository.save(mappedBody);
+
     delete newUser.password;
     return newUser;
   }
 
-  deleteUser(id: string) {
+  async deleteUser(id: string) {
     if (!isUUID(id)) {
       throw new InvalidUserIdException();
     }
-    const user = this.UserDB.hasUser(id);
+
+    const user = await this.userRepository.findOneBy({ id });
+
     if (!user) {
       throw new UserNotFoundException();
     }
-    return this.UserDB.removeUser(id);
+    const result = await this.userRepository.delete({ id });
+    return result;
   }
 
-  updateUser(id: string, body: UpdatePasswordDto) {
+  async updateUser(id: string, body: UpdatePasswordDto) {
     if (!isUUID(id)) {
       throw new InvalidUserIdException();
     }
-    const user = this.UserDB.hasUser(id);
+    const user = await this.userRepository.findOneBy({ id });
+
     if (!user) {
       throw new UserNotFoundException();
     }
@@ -72,7 +91,6 @@ export class UserService {
       version: user.version + 1,
       updatedAt: new Date().getTime(),
     };
-
-    return this.UserDB.updateUser(id, newBody);
+    this.userRepository.update({ id }, newBody);
   }
 }

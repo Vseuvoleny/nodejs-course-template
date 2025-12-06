@@ -4,8 +4,8 @@ import { ConfigModule } from '@nestjs/config';
 import { ArtistModule } from './artist/artist.module';
 import { TrackModule } from './track/track.module';
 import { AlbumModule } from './album/album.module';
-import { FavoriteController } from './favorite/favorite.controller';
 import { FavoriteModule } from './favorite/favorite.module';
+import { TypeOrmModule } from '@nestjs/typeorm';
 
 @Module({
   imports: [
@@ -15,8 +15,18 @@ import { FavoriteModule } from './favorite/favorite.module';
     TrackModule,
     AlbumModule,
     FavoriteModule,
+    TypeOrmModule.forRoot({
+      type: 'postgres',
+      host: 'localhost',
+      port: 5432,
+      username: 'postgres',
+      password: '261294',
+      database: 'nest',
+      autoLoadEntities: true,
+      synchronize: true,
+    }),
   ],
-  controllers: [FavoriteController],
+  controllers: [],
   providers: [],
 })
 export class AppModule {}
