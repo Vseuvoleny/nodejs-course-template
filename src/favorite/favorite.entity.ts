@@ -14,7 +14,7 @@ export class Favorite {
     joinColumn: { name: 'favoriteId', referencedColumnName: 'id' },
     inverseJoinColumn: { name: 'trackId', referencedColumnName: 'id' },
   })
-  track: Track[];
+  tracks: Track[];
 
   @ManyToMany(() => Artist)
   @JoinTable({
@@ -22,7 +22,7 @@ export class Favorite {
     joinColumn: { name: 'favoriteId', referencedColumnName: 'id' },
     inverseJoinColumn: { name: 'artistId', referencedColumnName: 'id' },
   })
-  artist: Artist[];
+  artists: Artist[];
 
   @ManyToMany(() => Album)
   @JoinTable({
@@ -30,5 +30,5 @@ export class Favorite {
     joinColumn: { name: 'favoriteId', referencedColumnName: 'id' },
     inverseJoinColumn: { name: 'albumId', referencedColumnName: 'id' },
   })
-  album: Album[];
+  albums: Album[];
 }

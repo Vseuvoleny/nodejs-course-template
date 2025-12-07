@@ -23,3 +23,9 @@ export class NotModifiedException extends HttpException {
     super('Элемент существует', HttpStatus.NOT_MODIFIED);
   }
 }
+
+export class Unprocessable_EntityException extends HttpException {
+  constructor(message?: string) {
+    super(message ?? 'Некорректная сущность', HttpStatus.UNPROCESSABLE_ENTITY);
+  }
+}

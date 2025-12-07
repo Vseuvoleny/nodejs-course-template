@@ -1,10 +1,6 @@
 import { Injectable } from '@nestjs/common';
-import { isUUID } from 'class-validator';
 
-import {
-  InvalidUserIdException,
-  UserNotFoundException,
-} from 'src/exceptions/user.exceptions';
+import { UserNotFoundException } from 'src/exceptions/user.exceptions';
 import { CreateArtistDto } from './create-artist.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Artist } from './artist.entity';
@@ -22,9 +18,6 @@ export class ArtistService {
   }
 
   async getById(id: string) {
-    if (!isUUID(id)) {
-      throw new InvalidUserIdException();
-    }
     const artist = await this.artistRepository.findOneBy({ id });
     if (!artist) {
       throw new UserNotFoundException('Артист не найден');
@@ -39,10 +32,7 @@ export class ArtistService {
   }
 
   async deleteArtist(id: string) {
-    if (!isUUID(id)) {
-      throw new InvalidUserIdException();
-    }
-    const artist = this.artistRepository.findOneBy({ id });
+    const artist = await this.artistRepository.findOneBy({ id });
     if (!artist) {
       throw new UserNotFoundException('Артист не найден');
     }
@@ -50,10 +40,7 @@ export class ArtistService {
   }
 
   async updateArtist(id: string, body: CreateArtistDto) {
-    if (!isUUID(id)) {
-      throw new InvalidUserIdException();
-    }
-    const artist = this.artistRepository.findOneBy({ id });
+    const artist = await this.artistRepository.findOneBy({ id });
     if (!artist) {
       throw new UserNotFoundException('Артист не найден');
     }

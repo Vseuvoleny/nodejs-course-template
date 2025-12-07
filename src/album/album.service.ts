@@ -1,13 +1,10 @@
 import { Injectable } from '@nestjs/common';
 
 import { CreateAlbumDto } from './create-album.dto';
-import { isUUID } from 'class-validator';
+
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import {
-  InvalidUserIdException,
-  UserNotFoundException,
-} from 'src/exceptions/user.exceptions';
+import { UserNotFoundException } from 'src/exceptions/user.exceptions';
 import { Album } from './album.entity';
 
 @Injectable()
@@ -21,11 +18,7 @@ export class AlbumService {
   }
 
   async getById(id: string) {
-    if (!isUUID(id)) {
-      throw new InvalidUserIdException();
-    }
-
-    const album = this.albumRepository.findOneBy({ id });
+    const album = await this.albumRepository.findOneBy({ id });
     if (!album) {
       throw new UserNotFoundException('Альбом не найден');
     }
@@ -42,10 +35,9 @@ export class AlbumService {
   }
 
   async deleteAlbum(id: string) {
-    if (!isUUID(id)) {
-      throw new InvalidUserIdException();
-    }
-    const album = this.albumRepository.findOneBy({ id });
+    const album = await this.albumRepository.findOneBy({ id });
+    console.log({ album });
+
     if (!album) {
       throw new UserNotFoundException('Альбом не найден');
     }
@@ -53,10 +45,7 @@ export class AlbumService {
   }
 
   async updateAlbum(id: string, body: CreateAlbumDto) {
-    if (!isUUID(id)) {
-      throw new InvalidUserIdException();
-    }
-    const album = this.albumRepository.findOneBy({ id });
+    const album = await this.albumRepository.findOneBy({ id });
     if (!album) {
       throw new UserNotFoundException('Альбом не найден');
     }

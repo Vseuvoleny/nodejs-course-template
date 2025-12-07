@@ -1,11 +1,8 @@
 import { Injectable } from '@nestjs/common';
 
 import { CreateTrackDto } from './create-track.dto';
-import { isUUID } from 'class-validator';
-import {
-  InvalidUserIdException,
-  UserNotFoundException,
-} from 'src/exceptions/user.exceptions';
+
+import { UserNotFoundException } from 'src/exceptions/user.exceptions';
 import { Track } from './track.entity';
 import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -22,10 +19,6 @@ export class TrackService {
   }
 
   async getById(id: string) {
-    if (!isUUID(id)) {
-      throw new InvalidUserIdException();
-    }
-
     const track = await this.trackRepository.findOneBy({ id });
     if (!track) {
       throw new UserNotFoundException();
@@ -41,22 +34,15 @@ export class TrackService {
   }
 
   async deleteTrack(id: string) {
-    if (!isUUID(id)) {
-      throw new InvalidUserIdException();
-    }
-    const track = await this.trackRepository.findOneBy({ id });
-    if (!track) {
+    const result = await this.trackRepository.delete({ id });
+    if (!result) {
       throw new UserNotFoundException();
     }
-    const result = await this.trackRepository.delete({ id });
     return result;
   }
 
   async updateTrack(id: string, body: CreateTrackDto) {
-    if (!isUUID(id)) {
-      throw new InvalidUserIdException();
-    }
-    const user = this.trackRepository.findOneBy({ id });
+    const user = await this.trackRepository.findOneBy({ id });
     if (!user) {
       throw new UserNotFoundException();
     }

@@ -2,12 +2,11 @@ import { Injectable } from '@nestjs/common';
 
 import { CreateUserDto } from './create-user.dto';
 import { UpdatePasswordDto } from './update-user.dto';
-import { isUUID } from 'class-validator';
+
 import {
   InvalidPasswordException,
-  InvalidUserIdException,
   UserNotFoundException,
-} from 'src/exceptions/user.exceptions';
+} from '../exceptions/user.exceptions';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from './user.entity';
 import { Repository } from 'typeorm';
@@ -27,10 +26,6 @@ export class UserService {
   }
 
   async getById(id: string) {
-    if (!isUUID(id)) {
-      throw new InvalidUserIdException();
-    }
-
     const user = await this.userRepository.findOneBy({ id });
     if (!user) {
       throw new UserNotFoundException();
@@ -56,23 +51,17 @@ export class UserService {
   }
 
   async deleteUser(id: string) {
-    if (!isUUID(id)) {
-      throw new InvalidUserIdException();
-    }
-
     const user = await this.userRepository.findOneBy({ id });
 
     if (!user) {
       throw new UserNotFoundException();
     }
     const result = await this.userRepository.delete({ id });
+
     return result;
   }
 
   async updateUser(id: string, body: UpdatePasswordDto) {
-    if (!isUUID(id)) {
-      throw new InvalidUserIdException();
-    }
     const user = await this.userRepository.findOneBy({ id });
 
     if (!user) {
@@ -91,6 +80,6 @@ export class UserService {
       version: user.version + 1,
       updatedAt: new Date().getTime(),
     };
-    this.userRepository.update({ id }, newBody);
+    await this.userRepository.update({ id }, newBody);
   }
 }
