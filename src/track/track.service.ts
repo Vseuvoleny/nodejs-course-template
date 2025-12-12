@@ -1,63 +1,58 @@
 import { Injectable } from '@nestjs/common';
-import { TrackDb } from 'src/db/trackdb';
-import { CreateTrackDto, Track } from './create-track.dto';
-import { randomUUID } from 'crypto';
-import { isUUID } from 'class-validator';
-import {
-  InvalidUserIdException,
-  UserNotFoundException,
-} from 'src/exceptions/user.exceptions';
+
+import { CreateTrackDto } from './create-track.dto';
+
+import { UserNotFoundException } from 'src/exceptions/user.exceptions';
+import { Track } from './track.entity';
+import { Repository } from 'typeorm';
+import { InjectRepository } from '@nestjs/typeorm';
 
 @Injectable()
 export class TrackService {
-  private TrackDBInstance = new TrackDb([]);
+  constructor(
+    @InjectRepository(Track) private trackRepository: Repository<Track>,
+  ) {}
 
-  getAll() {
-    return this.TrackDBInstance.getAllTracks.map((e) => {
-      return e;
-    });
+  async getAll() {
+    const tracks = await this.trackRepository.find();
+    return tracks;
   }
 
-  getById(id: string) {
-    const track = this.TrackDBInstance.getById(id);
+  async getById(id: string) {
+    const track = await this.trackRepository.findOneBy({ id });
+    if (!track) {
+      throw new UserNotFoundException();
+    }
+
     return track;
   }
 
-  createNewTrack(body: CreateTrackDto) {
-    const mappedBody: Track = {
-      id: randomUUID(),
-      ...body,
-    };
-    const newTrack = this.TrackDBInstance.addTrack(mappedBody);
+  async createNewTrack(body: CreateTrackDto) {
+    const newTrack = await this.trackRepository.save(body);
 
     return newTrack;
   }
 
-  deleteTrack(id: string) {
-    if (!isUUID(id)) {
-      throw new InvalidUserIdException();
-    }
-    const user = this.TrackDBInstance.hasTrack(id);
-    if (!user) {
+  async deleteTrack(id: string) {
+    const result = await this.trackRepository.delete({ id });
+    if (!result) {
       throw new UserNotFoundException();
     }
-    return this.TrackDBInstance.removeTrack(id);
+    return result;
   }
 
-  updateTrack(id: string, body: CreateTrackDto) {
-    if (!isUUID(id)) {
-      throw new InvalidUserIdException();
-    }
-    const user = this.TrackDBInstance.hasTrack(id);
+  async updateTrack(id: string, body: CreateTrackDto) {
+    const user = await this.trackRepository.findOneBy({ id });
     if (!user) {
       throw new UserNotFoundException();
     }
 
-    const newBody: Track = {
+    const newBody: Omit<Track, 'id'> = {
       ...user,
       ...body,
     };
 
-    return this.TrackDBInstance.updateTrack(id, newBody);
+    this.trackRepository.update({ id }, newBody);
+    return newBody;
   }
 }

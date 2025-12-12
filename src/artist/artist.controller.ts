@@ -12,35 +12,40 @@ import {
 } from '@nestjs/common';
 import { ArtistService } from './artist.service';
 import { CreateArtistDto, UpdateArtistDto } from './create-artist.dto';
+import { ParseUUIDPipe } from '@nestjs/common/pipes';
 
 @Controller('artist')
 export class ArtistController {
   constructor(private artistService: ArtistService) {}
   @Get()
-  getAll() {
-    return this.artistService.getAll();
+  async getAll() {
+    return await this.artistService.getAll();
   }
 
   @Get(':id')
-  getArtistById(@Param('id') id: string) {
-    return this.artistService.getById(id);
+  async getArtistById(@Param('id', ParseUUIDPipe) id: string) {
+    return await this.artistService.getById(id);
   }
 
   @Post()
   @HttpCode(201)
-  createNewArtist(@Body() createUserDto: CreateArtistDto) {
-    return this.artistService.createNewArtist(createUserDto);
+  async createNewArtist(@Body() createUserDto: CreateArtistDto) {
+    return await this.artistService.createNewArtist(createUserDto);
   }
 
   @Delete(':id')
-  deleteArtist(@Param('id') id: string) {
-    this.artistService.deleteArtist(id);
+  @HttpCode(204)
+  async deleteArtist(@Param('id', ParseUUIDPipe) id: string) {
+    await this.artistService.deleteArtist(id);
   }
 
   @Put(':id')
-  updateArtist(@Param('id') id: string, @Body() body: UpdateArtistDto) {
+  async updateArtist(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() body: UpdateArtistDto,
+  ) {
     try {
-      return this.artistService.updateArtist(id, body);
+      return await this.artistService.updateArtist(id, body);
     } catch (error) {
       if (error instanceof HttpException) {
         throw error;

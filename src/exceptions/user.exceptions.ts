@@ -7,13 +7,25 @@ export class InvalidUserIdException extends HttpException {
 }
 
 export class UserNotFoundException extends HttpException {
-  constructor() {
-    super('Пользователь не найден', HttpStatus.NOT_FOUND);
+  constructor(message?: string) {
+    super(message ?? 'Пользователь не найден', HttpStatus.NOT_FOUND);
   }
 }
 
 export class InvalidPasswordException extends HttpException {
   constructor() {
     super('Невалидный пароль', HttpStatus.FORBIDDEN);
+  }
+}
+
+export class NotModifiedException extends HttpException {
+  constructor() {
+    super('Элемент существует', HttpStatus.NOT_MODIFIED);
+  }
+}
+
+export class Unprocessable_EntityException extends HttpException {
+  constructor(message?: string) {
+    super(message ?? 'Некорректная сущность', HttpStatus.UNPROCESSABLE_ENTITY);
   }
 }

@@ -1,64 +1,60 @@
 import { Injectable } from '@nestjs/common';
-import { AlbumDb } from 'src/db/albumdb';
-import { Album, CreateAlbumDto } from './create-album.dto';
-import { isUUID } from 'class-validator';
-import { randomUUID } from 'crypto';
 
-import {
-  InvalidUserIdException,
-  UserNotFoundException,
-} from 'src/exceptions/user.exceptions';
+import { CreateAlbumDto } from './create-album.dto';
+
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { UserNotFoundException } from 'src/exceptions/user.exceptions';
+import { Album } from './album.entity';
 
 @Injectable()
 export class AlbumService {
-  private AlbumDBInstance = new AlbumDb([]);
+  constructor(
+    @InjectRepository(Album) private albumRepository: Repository<Album>,
+  ) {}
 
-  getAll() {
-    return this.AlbumDBInstance.getAllAlbums.map((e) => {
-      return e;
-    });
+  async getAll() {
+    return await this.albumRepository.find();
   }
 
-  getById(id: string) {
-    const album = this.AlbumDBInstance.getById(id);
+  async getById(id: string) {
+    const album = await this.albumRepository.findOneBy({ id });
+    if (!album) {
+      throw new UserNotFoundException('Альбом не найден');
+    }
     return album;
   }
 
-  createNewAlbum(body: CreateAlbumDto) {
-    const mappedBody: Album = {
-      id: randomUUID(),
+  async createNewAlbum(body: Omit<Album, 'id'>) {
+    const mappedBody: Omit<Album, 'id'> = {
       ...body,
     };
-    const newTrack = this.AlbumDBInstance.addAlbum(mappedBody);
+    const newTrack = await this.albumRepository.save(mappedBody);
 
     return newTrack;
   }
 
-  deleteAlbum(id: string) {
-    if (!isUUID(id)) {
-      throw new InvalidUserIdException();
+  async deleteAlbum(id: string) {
+    const album = await this.albumRepository.findOneBy({ id });
+    console.log({ album });
+
+    if (!album) {
+      throw new UserNotFoundException('Альбом не найден');
     }
-    const user = this.AlbumDBInstance.hasAlbum(id);
-    if (!user) {
-      throw new UserNotFoundException();
-    }
-    return this.AlbumDBInstance.removeAlbums(id);
+    return await this.albumRepository.delete({ id });
   }
 
-  updateAlbum(id: string, body: CreateAlbumDto) {
-    if (!isUUID(id)) {
-      throw new InvalidUserIdException();
-    }
-    const album = this.AlbumDBInstance.hasAlbum(id);
+  async updateAlbum(id: string, body: CreateAlbumDto) {
+    const album = await this.albumRepository.findOneBy({ id });
     if (!album) {
-      throw new UserNotFoundException();
+      throw new UserNotFoundException('Альбом не найден');
     }
 
-    const newBody: Album = {
+    const newBody: Omit<Album, 'id'> = {
       ...album,
       ...body,
     };
 
-    return this.AlbumDBInstance.updateAlbums(id, newBody);
+    return await this.albumRepository.update({ id }, newBody);
   }
 }

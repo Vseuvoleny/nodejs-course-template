@@ -1,4 +1,10 @@
-import { IsNotEmpty, IsNumber, IsString, IsUUID } from 'class-validator';
+import {
+  IsNotEmpty,
+  IsNumber,
+  IsOptional,
+  IsString,
+  IsUUID,
+} from 'class-validator';
 
 export interface Album {
   id: string; // uuid v4
@@ -16,6 +22,6 @@ export class CreateAlbumDto {
   year: number;
 
   @IsUUID()
-  @IsNotEmpty({ message: 'Идентификатор  артиста обязателен' })
+  @IsOptional()
   artistId: string | null; // refers to Artist
 }

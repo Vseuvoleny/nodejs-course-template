@@ -14,33 +14,35 @@ export interface Track {
   duration: number; // integer number
 }
 
-export class CreateTrackDto {
+export class CreateTrackDto implements Omit<Track, 'id'> {
   @IsString()
   @IsNotEmpty({ message: 'Наименование обязательно' })
   name: string;
 
   @IsUUID()
-  artistId: string;
+  @IsOptional()
+  artistId: string | null;
 
   @IsUUID()
-  albumId: string;
+  @IsOptional()
+  albumId: string | null;
 
   @IsNumber()
   duration: number;
 }
 
-export class UpdateTrackDto {
+export class UpdateTrackDto implements Omit<Track, 'id'> {
   @IsString()
   @IsOptional()
   name: string;
 
   @IsUUID()
   @IsOptional()
-  artistId: string;
+  artistId: string | null;
 
   @IsUUID()
   @IsOptional()
-  albumId: string;
+  albumId: string | null;
 
   @IsNumber()
   @IsOptional()

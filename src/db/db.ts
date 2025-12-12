@@ -1,5 +1,9 @@
 import { User } from 'src/user/create-user.dto';
-
+/**
+ * @deprecated
+ * Класс более не используется
+ * Используйте базу
+ */
 export class Db {
   private users: User[] = [];
 

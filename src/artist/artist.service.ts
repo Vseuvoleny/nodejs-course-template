@@ -1,63 +1,55 @@
 import { Injectable } from '@nestjs/common';
-import { isUUID } from 'class-validator';
-import { randomUUID } from 'crypto';
-import { ArtistDb } from 'src/db/artistdb';
-import {
-  InvalidUserIdException,
-  UserNotFoundException,
-} from 'src/exceptions/user.exceptions';
-import { Artist, CreateArtistDto } from './create-artist.dto';
+
+import { UserNotFoundException } from 'src/exceptions/user.exceptions';
+import { CreateArtistDto } from './create-artist.dto';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Artist } from './artist.entity';
+import { Repository } from 'typeorm';
 
 @Injectable()
 export class ArtistService {
-  private ArtistDBInstance = new ArtistDb([]);
+  constructor(
+    @InjectRepository(Artist) private artistRepository: Repository<Artist>,
+  ) {}
 
-  getAll() {
-    return this.ArtistDBInstance.getAllArtist.map((e) => {
-      return e;
-    });
+  async getAll() {
+    const result = await this.artistRepository.find();
+    return result;
   }
 
-  getById(id: string) {
-    const artist = this.ArtistDBInstance.getById(id);
+  async getById(id: string) {
+    const artist = await this.artistRepository.findOneBy({ id });
+    if (!artist) {
+      throw new UserNotFoundException('Артист не найден');
+    }
     return artist;
   }
 
-  createNewArtist(body: CreateArtistDto) {
-    const mappedBody: Artist = {
-      id: randomUUID(),
-      ...body,
-    };
-    const newTrack = this.ArtistDBInstance.addArtist(mappedBody);
+  async createNewArtist(body: Omit<Artist, 'id'>) {
+    const newTrack = await this.artistRepository.save(body);
 
     return newTrack;
   }
 
-  deleteArtist(id: string) {
-    if (!isUUID(id)) {
-      throw new InvalidUserIdException();
+  async deleteArtist(id: string) {
+    const artist = await this.artistRepository.findOneBy({ id });
+    if (!artist) {
+      throw new UserNotFoundException('Артист не найден');
     }
-    const user = this.ArtistDBInstance.hasArtist(id);
-    if (!user) {
-      throw new UserNotFoundException();
-    }
-    return this.ArtistDBInstance.removeArtist(id);
+    return this.artistRepository.delete({ id });
   }
 
-  updateArtist(id: string, body: CreateArtistDto) {
-    if (!isUUID(id)) {
-      throw new InvalidUserIdException();
-    }
-    const artist = this.ArtistDBInstance.hasArtist(id);
+  async updateArtist(id: string, body: CreateArtistDto) {
+    const artist = await this.artistRepository.findOneBy({ id });
     if (!artist) {
-      throw new UserNotFoundException();
+      throw new UserNotFoundException('Артист не найден');
     }
 
-    const newBody: Artist = {
+    const newBody: Omit<Artist, 'id'> = {
       ...artist,
       ...body,
     };
 
-    return this.ArtistDBInstance.updateArtist(id, newBody);
+    return this.artistRepository.update({ id }, newBody);
   }
 }

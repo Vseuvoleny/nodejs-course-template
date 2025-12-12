@@ -12,35 +12,40 @@ import {
 } from '@nestjs/common';
 import { TrackService } from './track.service';
 import { CreateTrackDto, UpdateTrackDto } from './create-track.dto';
+import { ParseUUIDPipe } from '@nestjs/common/pipes';
 
 @Controller('track')
 export class TrackController {
   constructor(private trackService: TrackService) {}
   @Get()
-  getAll() {
-    return this.trackService.getAll();
+  async getAll() {
+    return await this.trackService.getAll();
   }
 
   @Get(':id')
-  getTrackById(@Param('id') id: string) {
-    return this.trackService.getById(id);
+  async getTrackById(@Param('id', ParseUUIDPipe) id: string) {
+    return await this.trackService.getById(id);
   }
 
   @Post()
   @HttpCode(201)
-  createNewTrack(@Body() createTrackDto: CreateTrackDto) {
-    return this.trackService.createNewTrack(createTrackDto);
+  async createNewTrack(@Body() createTrackDto: CreateTrackDto) {
+    return await this.trackService.createNewTrack(createTrackDto);
   }
 
   @Delete(':id')
-  deleteTrack(@Param('id') id: string) {
-    this.trackService.deleteTrack(id);
+  @HttpCode(204)
+  async deleteTrack(@Param('id', ParseUUIDPipe) id: string) {
+    await this.trackService.deleteTrack(id);
   }
 
   @Put(':id')
-  updateTrack(@Param('id') id: string, @Body() body: UpdateTrackDto) {
+  async updateTrack(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() body: UpdateTrackDto,
+  ) {
     try {
-      return this.trackService.updateTrack(id, body);
+      return await this.trackService.updateTrack(id, body);
     } catch (error) {
       if (error instanceof HttpException) {
         throw error;
