@@ -70,3 +70,10 @@ npm run format
 Press <kbd>F5</kbd> to debug.
 
 For more information, visit: https://code.visualstudio.com/docs/editor/debugging
+
+### Для запуска контейнера
+
+0. Создаем env файлы по описанию env.example(есть костыль, которому решение пока не придумал)
+1. Собираем npm run docker:build
+2. Запускаем npm run docker:up
+3. Выключаем npm run docker:down

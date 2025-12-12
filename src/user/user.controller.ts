@@ -12,7 +12,7 @@ import {
 } from '@nestjs/common';
 import { UserService } from './user.service';
 import { CreateUserDto } from './create-user.dto';
-import {} from 'class-validator';
+import { ParseUUIDPipe } from '@nestjs/common/pipes';
 import { UpdatePasswordDto } from './update-user.dto';
 
 @Controller('user')
@@ -20,31 +20,26 @@ export class UserController {
   constructor(private userService: UserService) {}
 
   @Get()
-  getAll() {
-    return this.userService.getAll();
+  async getAll() {
+    return await this.userService.getAll();
   }
 
   @Get(':id')
-  getUserById(@Param('id') id: string) {
-    return this.userService.getById(id);
+  async getUserById(@Param('id', ParseUUIDPipe) id: string) {
+    return await this.userService.getById(id);
   }
 
   @Post()
   @HttpCode(201)
-  createNewUser(@Body() createUserDto: CreateUserDto) {
-    return this.userService.createNewUser(createUserDto);
+  async createNewUser(@Body() createUserDto: CreateUserDto) {
+    return await this.userService.createNewUser(createUserDto);
   }
 
   @Delete(':id')
-  deleteUser(@Param('id') id: string) {
-    this.userService.deleteUser(id);
-  }
-
-  @Put(':id')
-  updateUser(@Param('id') id: string, @Body() body: UpdatePasswordDto) {
+  @HttpCode(204)
+  async deleteUser(@Param('id', ParseUUIDPipe) id: string) {
     try {
-      this.userService.updateUser(id, body);
-      return { message: 'Пароль успешно изменен' };
+      await this.userService.deleteUser(id);
     } catch (error) {
       if (error instanceof HttpException) {
         throw error;
@@ -52,5 +47,14 @@ export class UserController {
 
       throw new BadRequestException('Something went wrong');
     }
+  }
+
+  @Put(':id')
+  @HttpCode(200)
+  async updateUser(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() body: UpdatePasswordDto,
+  ) {
+    return await this.userService.updateUser(id, body);
   }
 }

@@ -14,35 +14,40 @@ import {
 import { AlbumService } from './album.service';
 import { CreateAlbumDto } from './create-album.dto';
 import { UpdateAlbumDto } from './update-album.dto';
+import { ParseUUIDPipe } from '@nestjs/common/pipes';
 
 @Controller('album')
 export class AlbumController {
   constructor(private albumService: AlbumService) {}
   @Get()
-  getAll() {
-    return this.albumService.getAll();
+  async getAll() {
+    return await this.albumService.getAll();
   }
 
   @Get(':id')
-  getAlbumById(@Param('id') id: string) {
-    return this.albumService.getById(id);
+  async getAlbumById(@Param('id', ParseUUIDPipe) id: string) {
+    return await this.albumService.getById(id);
   }
 
   @Post()
   @HttpCode(201)
-  createNewAlbum(@Body() createAlbumDto: CreateAlbumDto) {
-    return this.albumService.createNewAlbum(createAlbumDto);
+  async createNewAlbum(@Body() createAlbumDto: CreateAlbumDto) {
+    return await this.albumService.createNewAlbum(createAlbumDto);
   }
 
   @Delete(':id')
-  deleteAlbum(@Param('id') id: string) {
-    this.albumService.deleteAlbum(id);
+  @HttpCode(204)
+  async deleteAlbum(@Param('id', ParseUUIDPipe) id: string) {
+    await this.albumService.deleteAlbum(id);
   }
 
   @Put(':id')
-  updateAlbum(@Param('id') id: string, @Body() body: UpdateAlbumDto) {
+  async updateAlbum(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() body: UpdateAlbumDto,
+  ) {
     try {
-      return this.albumService.updateAlbum(id, body);
+      return await this.albumService.updateAlbum(id, body);
     } catch (error) {
       if (error instanceof HttpException) {
         throw error;

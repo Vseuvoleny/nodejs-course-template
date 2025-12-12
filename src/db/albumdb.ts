@@ -1,5 +1,10 @@
 import { Album } from 'src/album/create-album.dto';
 
+/**
+ * @deprecated
+ * Класс более не используется
+ * Используйте базу
+ */
 export class AlbumDb {
   private albums: Album[] = [];
 
