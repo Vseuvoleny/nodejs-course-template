@@ -29,10 +29,15 @@ export class UserController {
     return await this.userService.getById(id);
   }
 
+  /**
+   * @deprecated
+   * создание польваотеля происходит в контроллере auth
+   */
   @Post()
   @HttpCode(201)
-  async createNewUser(@Body() createUserDto: CreateUserDto) {
-    return await this.userService.createNewUser(createUserDto);
+  async createNewUser() {
+    return;
+    // return await this.userService.createNewUser(createUserDto);
   }
 
   @Delete(':id')
