@@ -11,6 +11,7 @@ import {
   UserNotFoundException,
 } from 'src/exceptions/user.exceptions';
 import { RefreshTokenDto } from './auth.dto';
+import { FileLoggerService } from 'src/logger/logger.service';
 @Injectable()
 export class AuthService {
   private readonly saltRounds = process.env.CRYPT_SALT ?? 10;
@@ -18,6 +19,7 @@ export class AuthService {
   constructor(
     @InjectRepository(User) private userRepository: Repository<User>,
     private jwtService: JwtService,
+    private loggerService: FileLoggerService,
   ) {}
 
   /**
@@ -32,6 +34,7 @@ export class AuthService {
       );
       return hashedPassword;
     } catch (error) {
+      this.loggerService.error(error);
       throw new Error('Что то пошло не так');
     }
   }
@@ -64,6 +67,7 @@ export class AuthService {
       if (error instanceof InvalidPasswordException) {
         throw error;
       }
+      this.loggerService.error(error);
       throw new Error('Что то пошло не так');
     }
   }
@@ -127,6 +131,7 @@ export class AuthService {
       if (error instanceof UserNotFoundException) {
         throw error;
       }
+      this.loggerService.error(error);
       throw new RefreshTokenException();
     }
   }
