@@ -1,7 +1,17 @@
-import { Controller, Delete, Get, HttpCode, Param, Post } from '@nestjs/common';
+import {
+  Controller,
+  Delete,
+  Get,
+  HttpCode,
+  Param,
+  Post,
+  UseGuards,
+} from '@nestjs/common';
 import { FavoriteService } from './favorite.service';
 import { ParseUUIDPipe } from '@nestjs/common/pipes';
+import { AuthGuard } from 'src/auth/auth.guard';
 @Controller('favs')
+@UseGuards(AuthGuard)
 export class FavoriteController {
   constructor(private favoriteService: FavoriteService) {}
   @Get()
