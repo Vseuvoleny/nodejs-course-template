@@ -12,6 +12,17 @@ export class UserNotFoundException extends HttpException {
   }
 }
 
+export class RefreshTokenException extends HttpException {
+  constructor() {
+    super('Refrsh token is invalid', HttpStatus.FORBIDDEN);
+  }
+}
+export class RefreshTokenNotFoundException extends HttpException {
+  constructor() {
+    super('Refrsh token not Found', HttpStatus.UNAUTHORIZED);
+  }
+}
+
 export class InvalidPasswordException extends HttpException {
   constructor() {
     super('Невалидный пароль', HttpStatus.FORBIDDEN);

@@ -4,6 +4,8 @@ import { CreateUserDto } from 'src/user/create-user.dto';
 import { UserService } from 'src/user/user.service';
 import { AuthService } from './auth.service';
 import { RefreshTokenDto } from './auth.dto';
+import { RefreshTokenNotFoundException } from 'src/exceptions/user.exceptions';
+import { Public } from './auth.decorator';
 
 @Controller('auth')
 export class AuthController {
@@ -13,6 +15,7 @@ export class AuthController {
   ) {}
 
   @Post('signup')
+  @Public()
   @HttpCode(201)
   async signUp(@Body() createUserDto: CreateUserDto) {
     const hashedPassword = await this.authService.hashPassword(
@@ -24,14 +27,18 @@ export class AuthController {
     });
   }
   @Post('login')
+  @Public()
   async login(@Body() createUserDto: CreateUserDto) {
     return await this.authService.validateUser(createUserDto);
   }
 
   @Post('refresh')
-  async refresh(@Body() refreshToken: RefreshTokenDto) {
-    console.log('!!');
+  @Public()
+  async refresh(@Body() body: RefreshTokenDto) {
+    if (!body.refreshToken) {
+      throw new RefreshTokenNotFoundException();
+    }
 
-    return await this.authService.refresh(refreshToken);
+    return await this.authService.refresh(body);
   }
 }

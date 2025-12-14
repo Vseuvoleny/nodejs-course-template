@@ -1,11 +1,15 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import bcrypt from 'bcrypt';
+import * as bcrypt from 'bcrypt';
 import { CreateUserDto } from 'src/user/create-user.dto';
 import { User } from 'src/user/user.entity';
 import { Repository } from 'typeorm';
 import { JwtModuleOptions, JwtService, JwtVerifyOptions } from '@nestjs/jwt';
-import { UserNotFoundException } from 'src/exceptions/user.exceptions';
+import {
+  InvalidPasswordException,
+  RefreshTokenException,
+  UserNotFoundException,
+} from 'src/exceptions/user.exceptions';
 import { RefreshTokenDto } from './auth.dto';
 @Injectable()
 export class AuthService {
@@ -22,7 +26,10 @@ export class AuthService {
    */
   public async hashPassword(password: string) {
     try {
-      const hashedPassword = await bcrypt.hash(password, this.saltRounds);
+      const hashedPassword = await bcrypt.hash(
+        password,
+        Number(this.saltRounds),
+      );
       return hashedPassword;
     } catch (error) {
       throw new Error('Что то пошло не так');
@@ -42,10 +49,11 @@ export class AuthService {
         throw new UserNotFoundException('Invalid Credential');
       }
       const isEqual = await bcrypt.compare(user.password, findedUser.password);
+
       if (!isEqual) {
-        throw new UserNotFoundException('Invalid credentials');
+        throw new InvalidPasswordException();
       }
-      //  достаем все данные пользователя кроме пароля
+      // достаем все данные пользователя кроме пароля
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const { password: _, ...restUserData } = findedUser;
       return this.generateTokens(restUserData);
@@ -53,10 +61,15 @@ export class AuthService {
       if (error instanceof UserNotFoundException) {
         throw error;
       }
+      if (error instanceof InvalidPasswordException) {
+        throw error;
+      }
       throw new Error('Что то пошло не так');
     }
   }
-
+  /**
+   * создаем accesToken и refreshToken
+   */
   private async generateTokens(user: Omit<User, 'password'>) {
     const accessTokenPayload = {
       sub: user.id,
@@ -72,12 +85,12 @@ export class AuthService {
 
     const [accessToken, refreshToken] = await Promise.all([
       this.jwtService.signAsync(accessTokenPayload, {
-        secret: process.env.JWT_ACCESS_SECRET,
+        secret: process.env.JWT_SECRET_KEY,
         expiresIn: process.env
           .TOKEN_EXPIRE_TIME as JwtModuleOptions['signOptions']['expiresIn'],
       }),
       this.jwtService.signAsync(refreshTokenPayload, {
-        secret: process.env.JWT_REFRESH_SECRET,
+        secret: process.env.JWT_SECRET_REFRESH_KEY,
         expiresIn: process.env
           .TOKEN_REFRESH_EXPIRE_TIME as JwtModuleOptions['signOptions']['expiresIn'],
       }),
@@ -89,32 +102,32 @@ export class AuthService {
     };
   }
 
-  async validateAccessToken(token: string) {
-    try {
-      return this.jwtService.verify(token, {
-        secret: process.env.JWT_SECRET_KEY,
-      });
-    } catch {
-      return;
-    }
-  }
-
+  /**
+   * обновляет токен
+   */
   async refresh({ refreshToken }: RefreshTokenDto) {
-    const payload = this.jwtService.verify(
-      refreshToken,
-      process.env.JWT_SECRET_REFRESH_KEY as JwtVerifyOptions,
-    );
+    try {
+      const payload = this.jwtService.verify(refreshToken, {
+        secret: process.env
+          .JWT_SECRET_REFRESH_KEY as JwtVerifyOptions['secret'],
+      });
 
-    if (!payload || payload.type !== 'refresh') {
-      throw new UserNotFoundException('Invalid or expired refresh token');
+      if (!payload || payload.type !== 'refresh') {
+        throw new RefreshTokenException();
+      }
+
+      const user = await this.userRepository.findOneBy({ id: payload.sub });
+
+      if (!user) {
+        throw new UserNotFoundException();
+      }
+
+      return this.generateTokens(user);
+    } catch (error) {
+      if (error instanceof UserNotFoundException) {
+        throw error;
+      }
+      throw new RefreshTokenException();
     }
-
-    const user = await this.userRepository.findOneBy({ id: payload.sub });
-
-    if (!user) {
-      throw new UserNotFoundException('Invalid or expired refresh token');
-    }
-
-    return this.generateTokens(user);
   }
 }
